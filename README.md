@@ -29,39 +29,37 @@
 
 ## 🔧 技术架构
 
-本项目采用先进的**多层工作流解耦架构**，确保了系统的高可用性、可维护性和逻辑清晰性。
-
 ```mermaid
 graph TD
-    subgraph 用户端
+    subgraph "用户端"
         A[家庭成员在飞书群聊中发言]
     end
 
-    subgraph 网络与调度层
-        B(ngrok 公网地址) --> C{Webhook<br>机器人消息分发.json}
+    subgraph "网络与调度层"
+        B(ngrok 公网地址) --> C{"Webhook<br>机器人消息分发.json"}
     end
     
-    subgraph 核心逻辑层 (n8n Workflows)
-        subgraph 思考模块 (The Brain)
-            F[cj-消息回复.json] -- 调用工具 --> G[飞书-图片 OCR.json]
+    subgraph "核心逻辑层 (n8n Workflows)"
+        subgraph "思考模块 (The Brain)"
+            F["cj-消息回复.json"] -- 调用工具 --> G["飞书-图片 OCR.json"]
             F -- 调用工具 --> H[MySQL 数据库]
         end
 
-        subgraph 表达模块 (The Mouth)
-            E[群聊-cj.json]
+        subgraph "表达模块 (The Mouth)"
+            E["群聊-cj.json"]
         end
     end
 
-    subgraph 外部服务
-        I[大语言模型 API<br>(Google Gemini, DeepSeek)]
+    subgraph "外部服务"
+        I["大语言模型 API<br>(Google Gemini, DeepSeek)"]
         H
     end
 
     A -- Webhook --> B
-    C -- 根据 Chat ID 分发 --> E
+    C -- "根据 Chat ID 分发" --> E
     E -- 触发执行 --> F
     F -- 思考结果 --> E
-    E -- 格式化并调用 --> I
+    E -- "格式化并调用" --> I
     E -- 最终回复 --> A
 ```
 
