@@ -1,0 +1,394 @@
+{
+  "name": "私聊-cj",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        560,
+        -40
+      ],
+      "id": "56847952-20ce-4fb0-9ac5-c5b3cd68e998",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=发送者信息：{{ $('When Executed by Another Workflow').item.json.body.event.sender.toJsonString() }}\n\n收到的消息内容：{{ $('When Executed by Another Workflow').item.json.body.event.message.toJsonString() }}\n\n准备回复的消息：{{ $json.data[0].output }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=你是一个飞书机器人，你需要帮我构建一条回复消息。收到的消息和准备回复的消息内容我已经提供给你了，请你根据我提供给你的这些数据和下面的飞书消息内容文档，构建出一个正确的回复内容，内容为 json 字符串。\n\n要求：\n根据回复的内容，自行判断是否需要做重新的内容排版等，并找出合适的回复消息类型。\n\n\n请务必仔细查看下面的飞书相关文档，构建出正确的消息json，注意：json 中 content 字段为一个字符串，请按照要求转义冒号、斜杠等特殊符号。\n\n输出示例：\n{\n  \"content\":\"{\\\"text\\\":\\\"回复的内容\\\"}\",\n  \"msg_type\":\"text\"\n}\n\n用户成员信息：\n{{ $json.data[2].data.toJsonString() }}\n\n飞书文档：\n<markdown>\n{{ $json.data[1].data }}\n</markdown>"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        -20
+      ],
+      "id": "cddef11e-6b3d-4c41-8a8f-4c76195e4877",
+      "name": "回复消息构建1",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"content\":\"{\\\"text\\\":\\\"回复的内容\\\"}\",\n  \"msg_type\":\"text\"\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        1840,
+        180
+      ],
+      "id": "3d692ea7-d27b-4c49-91a0-87ac7769cc0e",
+      "name": "Structured Output Parser2"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "message:reply",
+        "message_id": "={{ $('When Executed by Another Workflow').item.json.body.event.message.message_id }}",
+        "msg_type": "={{ $json.output.msg_type }}",
+        "content": "={{ $json.output.content }}"
+      },
+      "type": "n8n-nodes-feishu-lite.feishuNode",
+      "typeVersion": 1,
+      "position": [
+        2120,
+        -20
+      ],
+      "id": "56262185-8daf-45dd-9e93-a55688665a82",
+      "name": "Message:reply message1",
+      "credentials": {
+        "feishuCredentialsApi": {
+          "id": "GsS59wsR4prau5ew",
+          "name": "Feishu Credentials account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fileSelector": "/home/node/doc/飞书消息构建-新.txt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        1060,
+        40
+      ],
+      "id": "23f40312-407d-4945-a40d-74536276b85b",
+      "name": "Read/Write Files from Disk3"
+    },
+    {
+      "parameters": {
+        "operation": "text",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        40
+      ],
+      "id": "6c1fa09d-16ea-436a-aed8-d62b5fb5527d",
+      "name": "Extract from File3"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1380,
+        -20
+      ],
+      "id": "ae16fbc1-7a80-4eae-9fba-fd7dc2d0cf16",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1540,
+        -20
+      ],
+      "id": "c76e5427-2ff2-4718-b4c9-25868182c116",
+      "name": "Aggregate4"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "ERUZqBK7LreZG2Jt",
+          "mode": "list",
+          "cachedResultName": "cj-消息回复"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "input": "={{ $json.body.event.toJsonString() }}",
+            "sessionId": "={{ $json.body.event.message.chat_id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "input",
+              "displayName": "input",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "sessionId",
+              "displayName": "sessionId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        840,
+        -40
+      ],
+      "id": "7cdbf369-27d7-450f-98fe-99229c031353",
+      "name": "问答1"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "table": {
+          "__rl": true,
+          "value": "FamilyMembers",
+          "mode": "list",
+          "cachedResultName": "FamilyMembers"
+        },
+        "returnAll": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        1060,
+        220
+      ],
+      "id": "a6e8bc0a-dd01-4899-a35b-339393f04f18",
+      "name": "家庭成员信息-new1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mySql": {
+          "id": "M2znCdNI5mdDS17A",
+          "name": "MySQL account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        220
+      ],
+      "id": "5cf77a5b-912e-4995-823d-f4fab0747263",
+      "name": "Aggregate5"
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-2.5-flash",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        300
+      ],
+      "id": "4661d26f-14ee-4cf9-9600-6ff198181e72",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Z4ELRVh7BNntXRUQ",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "问答1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "回复消息构建1": {
+      "main": [
+        [
+          {
+            "node": "Message:reply message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser2": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "回复消息构建1",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk3": {
+      "main": [
+        [
+          {
+            "node": "Extract from File3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File3": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "Aggregate4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate4": {
+      "main": [
+        [
+          {
+            "node": "回复消息构建1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "问答1": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Read/Write Files from Disk3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "家庭成员信息-new1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "家庭成员信息-new1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate5": {
+      "main": [
+        [
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "回复消息构建1",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Structured Output Parser2",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Shanghai",
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "c1f4a497-3cd1-45e3-8170-f50a2e76bb18",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "802af68dd13fc0c2fc1f7a8c0f2d3d9f9bf77819a055a4e9b281232461e0a514"
+  },
+  "id": "u0jHUCg8lCW0Chpa",
+  "tags": []
+}

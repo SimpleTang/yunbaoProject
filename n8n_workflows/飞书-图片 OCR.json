@@ -1,0 +1,255 @@
+{
+  "name": "飞书-图片 OCR",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "message_id"
+            },
+            {
+              "name": "file_key"
+            },
+            {
+              "name": "type"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "a1903ee3-2c2e-4c84-b56e-c2fdb981b1ac",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "resource": "auth",
+        "operation": "auth:getAccessToken"
+      },
+      "type": "n8n-nodes-feishu-lite.feishuNode",
+      "typeVersion": 1,
+      "position": [
+        220,
+        0
+      ],
+      "id": "b6842ee9-6a1d-4e8c-9fe1-d77f3f18464b",
+      "name": "Auth:getAccessToken auth",
+      "credentials": {
+        "feishuCredentialsApi": {
+          "id": "GsS59wsR4prau5ew",
+          "name": "Feishu Credentials account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://open.feishu.cn/open-apis/im/v1/messages/{{ $('When Executed by Another Workflow').item.json.message_id }}/resources/{{ $('When Executed by Another Workflow').item.json.file_key }}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "=type",
+              "value": "={{ $('When Executed by Another Workflow').item.json.type }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.accessToken }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json; charset=utf-8"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        0
+      ],
+      "id": "5a033486-cd70-4b06-9038-c83c01734d18",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "options": {
+          "language": "chi_sim"
+        }
+      },
+      "type": "n8n-nodes-tesseractjs.tesseractNode",
+      "typeVersion": 1,
+      "position": [
+        880,
+        -220
+      ],
+      "id": "9c13efe8-98cc-45c1-9ca3-ea6a0634af6f",
+      "name": "Tesseract"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2c9c540e-bb42-43bc-b434-25291815cd9d",
+              "name": "text",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            },
+            {
+              "id": "7c067e18-76ae-42c2-8d99-3a8a74e088e9",
+              "name": "confidence",
+              "value": "={{ $json.confidence }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1060,
+        -220
+      ],
+      "id": "467e1268-36e2-43aa-bd69-7fb50822648f",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "3c10f93b-2c72-4582-bcbf-914e66d84258",
+              "leftValue": "={{ $('When Executed by Another Workflow').item.json.type }}",
+              "rightValue": "image",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        660,
+        0
+      ],
+      "id": "622d8e7a-3a9e-47c2-a478-60ea019b4a32",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"result\": \"暂时不支持识别非图片的文件\"\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1060,
+        20
+      ],
+      "id": "1480124a-9896-49a7-b0f0-10f82bf02734",
+      "name": "Edit Fields1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Auth:getAccessToken auth",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auth:getAccessToken auth": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tesseract": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Tesseract",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "5b51df99-a84e-4457-9193-44ca9478f3a8",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "802af68dd13fc0c2fc1f7a8c0f2d3d9f9bf77819a055a4e9b281232461e0a514"
+  },
+  "id": "Bb8P0ejHxZ8K1dZ1",
+  "tags": []
+}

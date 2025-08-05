@@ -1,0 +1,567 @@
+{
+  "name": "机器人消息分发",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "eb8b743e-844f-49a0-a54b-163c2f30b8d7",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "754780f6-c00a-4cad-878b-77db6769e98e",
+      "name": "Webhook",
+      "webhookId": "eb8b743e-844f-49a0-a54b-163c2f30b8d7"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"challenge\": \"{{ $json.body.challenge }}\"\n} ",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        200,
+        0
+      ],
+      "id": "95642c6a-5e19-4a5d-b359-48cb2ce75b04",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "qW3hXjrB1fu1qYNx",
+          "mode": "list",
+          "cachedResultName": "群聊-机器人测试"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1020,
+        -360
+      ],
+      "id": "49a41c44-7319-44f6-9511-e866d6999fa4",
+      "name": "群聊-机器人测试",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "message:send",
+        "receive_id_type": "chat_id",
+        "receive_id": "={{ $('Webhook').item.json.body.event.message.chat_id }}",
+        "content": "={\"text\":\"<at user_id=\\\\\"{{ $('Webhook').item.json.body.event.sender.sender_id.user_id }}\\\"></at> 机器人宕机了 -_-!!!\"}"
+      },
+      "type": "n8n-nodes-feishu-lite.feishuNode",
+      "typeVersion": 1,
+      "position": [
+        1680,
+        -40
+      ],
+      "id": "4072743b-9658-4ab1-ac26-1ff7f9136572",
+      "name": "Message:send message1",
+      "credentials": {
+        "feishuCredentialsApi": {
+          "id": "GsS59wsR4prau5ew",
+          "name": "Feishu Credentials account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "9hweGVBPyvEjIj62",
+          "mode": "list",
+          "cachedResultName": "群聊-cj"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1020,
+        -60
+      ],
+      "id": "85a4e649-997f-4c9d-bc78-b0c83a652680",
+      "name": "群聊-cj",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.event.message.chat_type }}",
+                    "rightValue": "group",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "bc41d079-d8ee-4e74-90e5-bc8e66fffe9f"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "4d61a035-0599-4698-9af5-0de87a3c3b85",
+                    "leftValue": "={{ $json.body.event.message.chat_type }}",
+                    "rightValue": "p2p",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        420,
+        0
+      ],
+      "id": "c6e30e5b-becc-43a2-a1c9-b123c12f2383",
+      "name": "筛选群聊/私聊"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.body.event.message.chat_id }}",
+                    "rightValue": "oc_0d84cf79c1294ccb302487a714fba53d",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "54bd32d3-db5b-4368-a4e1-ffd2ef52ffed"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "17359078-e202-42fc-aa10-7da6b7fc110c",
+                    "leftValue": "={{ $json.body.event.message.chat_id }}",
+                    "rightValue": "oc_912e9cdefdd8468a7508dc8f6b87109c",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "ignoreCase": false
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        700,
+        -200
+      ],
+      "id": "66e06ea6-7936-46e6-9c64-0eff40b96337",
+      "name": "筛选不同群"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "table": {
+          "__rl": true,
+          "value": "FamilyMembers",
+          "mode": "list",
+          "cachedResultName": "FamilyMembers"
+        },
+        "where": {
+          "values": [
+            {
+              "column": "feishu_id",
+              "condition": "LIKE",
+              "value": "=%{{ $json.body.event.sender.sender_id.open_id }}%"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        700,
+        260
+      ],
+      "id": "331036aa-a6cd-45c4-b8eb-3093e9b09cb7",
+      "name": "Select rows from a table",
+      "alwaysOutputData": true,
+      "credentials": {
+        "mySql": {
+          "id": "M2znCdNI5mdDS17A",
+          "name": "MySQL account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "8f1c1199-b888-4c7d-9ed4-29f8dd4ff95b",
+              "leftValue": "={{ $json.feishu_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "object",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        880,
+        260
+      ],
+      "id": "45e8dbf4-70df-4c71-9902-40787b156566",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "select",
+        "table": {
+          "__rl": true,
+          "value": "Base",
+          "mode": "list",
+          "cachedResultName": "Base"
+        },
+        "limit": 1,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.mySql",
+      "typeVersion": 2.4,
+      "position": [
+        1100,
+        420
+      ],
+      "id": "1d5fc4e8-6f65-4680-a1b4-a04e521e3f8d",
+      "name": "Select rows from a table1",
+      "credentials": {
+        "mySql": {
+          "id": "M2znCdNI5mdDS17A",
+          "name": "MySQL account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "message:send",
+        "receive_id_type": "chat_id",
+        "receive_id": "={{ $('Webhook').item.json.body.event.message.chat_id }}",
+        "content": "={\"text\":\"您还不是{{ $json.name }}的家属，无法为您提供服务!\"}"
+      },
+      "type": "n8n-nodes-feishu-lite.feishuNode",
+      "typeVersion": 1,
+      "position": [
+        1300,
+        420
+      ],
+      "id": "0fd48eb4-42c1-4943-be49-034f881a4783",
+      "name": "Message:send message",
+      "credentials": {
+        "feishuCredentialsApi": {
+          "id": "GsS59wsR4prau5ew",
+          "name": "Feishu Credentials account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={{ $('Webhook').item.json.toJsonString() }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1100,
+        160
+      ],
+      "id": "1839ab80-b969-40fb-bb9b-3e8a386923e0",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "u0jHUCg8lCW0Chpa",
+          "mode": "list",
+          "cachedResultName": "私聊-cj"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1300,
+        160
+      ],
+      "id": "4108d1d4-fbee-4087-bed5-c7842c10fd30",
+      "name": "私聊-cj",
+      "onError": "continueErrorOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook": {
+      "main": [
+        [
+          {
+            "node": "筛选群聊/私聊",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "群聊-机器人测试": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Message:send message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "群聊-cj": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Message:send message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "筛选群聊/私聊": {
+      "main": [
+        [
+          {
+            "node": "筛选不同群",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Select rows from a table",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "筛选不同群": {
+      "main": [
+        [
+          {
+            "node": "群聊-机器人测试",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "群聊-cj",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select rows from a table": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Select rows from a table1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Select rows from a table1": {
+      "main": [
+        [
+          {
+            "node": "Message:send message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "私聊-cj",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "私聊-cj": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Message:send message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a335c425-f567-446d-8103-57cd3edd7e4d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "802af68dd13fc0c2fc1f7a8c0f2d3d9f9bf77819a055a4e9b281232461e0a514"
+  },
+  "id": "cM7iTT479yrlOK81",
+  "tags": []
+}
